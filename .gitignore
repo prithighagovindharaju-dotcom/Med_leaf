@@ -1,0 +1,9 @@
+Data_small.zip
+data_small/
+Data_small/
+*.jpg
+*.jpeg
+*.png
+*.exe
+venv/
+venv/
