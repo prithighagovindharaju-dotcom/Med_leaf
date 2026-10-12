@@ -4,7 +4,7 @@ import torch
 ## Paths
 IS_COLAB = os.path.exists("/content")
 
-BASE_DIR = "/content/drive/MyDrive/medicinal_leaf" if IS_COLAB else os.getcwd()
+BASE_DIR = "/content/drive/MyDrive/Med_leaf" if IS_COLAB else os.getcwd()
 DATA_DIR = "/content/dataset" if IS_COLAB else os.path.join(BASE_DIR, "data_small")  # full training ku "data_small" ah "data" nu maathu
 
 CKPT_DIR = os.path.join(BASE_DIR, "checkpoints")
