@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -51,17 +52,42 @@ def main():
     scaler = torch.amp.GradScaler("cuda", enabled=DEVICE.type == "cuda")
 
     best_acc = 0.0
-    for epoch in range(1, EPOCHS + 1):
+    start_epoch = 1
+
+    ## Resume: last.pth irundha andha epoch irundhu continue pannu
+    if os.path.exists(LAST_CKPT_PATH):
+        last = torch.load(LAST_CKPT_PATH, map_location=DEVICE)
+        model.load_state_dict(last["model"])
+        optimizer.load_state_dict(last["optimizer"])
+        scheduler.load_state_dict(last["scheduler"])
+        scaler.load_state_dict(last["scaler"])
+        best_acc = last["best_acc"]
+        start_epoch = last["epoch"] + 1
+        print(f"Resuming from epoch {start_epoch} (best acc so far {best_acc:.3f})")
+
+    ## Training loop
+    for epoch in range(start_epoch, EPOCHS + 1):
         tr_loss, tr_acc, _, _ = run_epoch(model, train_dl, criterion, optimizer, scaler)
         va_loss, va_acc, _, _ = run_epoch(model, val_dl, criterion)
         scheduler.step()
         print(f"Epoch {epoch:02d}/{EPOCHS} | train acc {tr_acc:.3f} | "
               f"val loss {va_loss:.3f} | val acc {va_acc:.3f}")
 
+        ## Best model save
         if va_acc > best_acc:
             best_acc = va_acc
             torch.save({"model": model.state_dict(), "classes": classes}, CKPT_PATH)
             print("  saved best model")
+
+        ## Every epoch: resume checkpoint save
+        torch.save({
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "scheduler": scheduler.state_dict(),
+            "scaler": scaler.state_dict(),
+            "epoch": epoch,
+            "best_acc": best_acc,
+            "classes": classes}, LAST_CKPT_PATH)
 
     ## Final test evaluation with the best checkpoint
     ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
