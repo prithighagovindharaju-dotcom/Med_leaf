@@ -1,9 +1,11 @@
-Data_small.zip
 data_small/
-Data_small/
 *.jpg
 *.jpeg
 *.png
 *.exe
 venv/
-venv/
+data/
+raw_data/
+__pycache__/
+*.zip
+*.pth
