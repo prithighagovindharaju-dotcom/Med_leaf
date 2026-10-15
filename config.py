@@ -16,7 +16,7 @@ LAST_CKPT_PATH = os.path.join(CKPT_DIR, "last.pth")    # resume ku
 ## Image and training settings
 IMG_SIZE = 224
 BATCH_SIZE = 32
-EPOCHS = 25
+EPOCHS = 50
 NUM_WORKERS = 2
 
 ## Model settings

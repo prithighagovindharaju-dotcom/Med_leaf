@@ -1,4 +1,5 @@
 import os
+import csv
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -53,6 +54,7 @@ def main():
 
     best_acc = 0.0
     start_epoch = 1
+    history = []
 
     ## Resume: last.pth irundha andha epoch irundhu continue pannu
     if os.path.exists(LAST_CKPT_PATH):
@@ -62,6 +64,7 @@ def main():
         scheduler.load_state_dict(last["scheduler"])
         scaler.load_state_dict(last["scaler"])
         best_acc = last["best_acc"]
+        history = last.get("history", [])
         start_epoch = last["epoch"] + 1
         print(f"Resuming from epoch {start_epoch} (best acc so far {best_acc:.3f})")
 
@@ -72,6 +75,10 @@ def main():
         scheduler.step()
         print(f"Epoch {epoch:02d}/{EPOCHS} | train acc {tr_acc:.3f} | "
               f"val loss {va_loss:.3f} | val acc {va_acc:.3f}")
+
+        ## Epoch values save (graph ku)
+        history.append({"epoch": epoch, "train_loss": tr_loss, "train_acc": tr_acc,
+                        "val_loss": va_loss, "val_acc": va_acc})
 
         ## Best model save
         if va_acc > best_acc:
@@ -87,7 +94,15 @@ def main():
             "scaler": scaler.state_dict(),
             "epoch": epoch,
             "best_acc": best_acc,
+            "history": history,
             "classes": classes}, LAST_CKPT_PATH)
+
+    ## History CSV save
+    if history:
+        with open(os.path.join(CKPT_DIR, "history.csv"), "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=history[0].keys())
+            w.writeheader()
+            w.writerows(history)
 
     ## Final test evaluation with the best checkpoint
     ckpt = torch.load(CKPT_PATH, map_location=DEVICE)
