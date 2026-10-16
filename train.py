@@ -62,7 +62,8 @@ def main():
         model.load_state_dict(last["model"])
         optimizer.load_state_dict(last["optimizer"])
         scheduler.load_state_dict(last["scheduler"])
-        scaler.load_state_dict(last["scaler"])
+                if last.get("scaler"):
+            scaler.load_state_dict(last["scaler"])
         best_acc = last["best_acc"]
         history = last.get("history", [])
         start_epoch = last["epoch"] + 1
